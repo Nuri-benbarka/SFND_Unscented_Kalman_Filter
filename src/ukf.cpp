@@ -9,7 +9,7 @@ using Eigen::VectorXd;
  */
 UKF::UKF() {
   // if this is false, laser measurements will be ignored (except during init)
-  use_laser_ = true;
+  use_laser_ = false;
 
   // if this is false, radar measurements will be ignored (except during init)
   use_radar_ = true;
@@ -110,10 +110,18 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
    * TODO: Complete this function! Make sure you switch between lidar and radar
    * measurements.
    */
+   if(meas_package.sensor_type_== MeasurementPackage::LASER && use_laser_){
+       Prediction(meas_package.timestamp_-time_us_);
+       UpdateLidar(meas_package);
+   }
+    if(meas_package.sensor_type_== MeasurementPackage::RADAR && use_radar_){
+        Prediction(meas_package.timestamp_-time_us_);
+        UpdateRadar(meas_package);
+    }
 }
 
 void UKF::Prediction(double delta_t) {
-  
+
     MatrixXd Xsig_aug = AugmentedSigmaPoints();
     MatrixXd Xsig_pred = MatrixXd(n_x_, 2 * n_aug_ + 1);
 
