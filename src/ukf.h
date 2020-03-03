@@ -87,7 +87,7 @@ class UKF {
   double std_radrd_ ;
 
   // Weights of sigma points
-  Eigen::VectorXd weights_;
+  Eigen::VectorXd weights_ ;
 
   // State dimension
   int n_x_;
@@ -97,6 +97,8 @@ class UKF {
 
   // Sigma point spreading parameter
   double lambda_;
+
+  Eigen::MatrixXd Xsig_pred;
 };
 
 #endif  // UKF_H
