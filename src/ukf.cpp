@@ -24,10 +24,10 @@ UKF::UKF() {
   P_ = MatrixXd(n_x_, n_x_);
 
   // Process noise standard deviation longitudinal acceleration in m/s^2
-  std_a_ = 0.2;
+  std_a_ = 1;
 
   // Process noise standard deviation yaw acceleration in rad/s^2
-  std_yawdd_ = 0.2;
+  std_yawdd_ = 1;
   
   /**
    * DO NOT MODIFY measurement noise values below.
@@ -70,7 +70,6 @@ UKF::UKF() {
     }  // 2n+1 weights
 
     Xsig_pred = MatrixXd(n_x_, 2 * n_aug_ + 1);
-
 
 
 
@@ -129,7 +128,7 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
            x_(0) = rho * cos(phi);
            x_(1) = rho * sin(phi);
            x_(2) = rho_dot;
-           P_.fill(0);
+           P_=MatrixXd ::Identity(n_x_,n_x_);
            time_us_ = meas_package.timestamp_;
            is_initialized_ = true;
 
@@ -140,20 +139,20 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
            x_.fill(0.0);
            x_(0) = X;
            x_(1) = Y;
-           P_.fill(0);
+           P_=MatrixXd ::Identity(n_x_,n_x_);
            time_us_ = meas_package.timestamp_;
            is_initialized_ = true;
 
        }
    }
-
+   double delta_t = double (meas_package.timestamp_ - time_us_) / 1000000;
    if(meas_package.sensor_type_== MeasurementPackage::LASER && use_laser_ && is_initialized_){
-       Prediction(meas_package.timestamp_ - time_us_);
+       Prediction(delta_t);
        UpdateLidar(meas_package);
        time_us_ = meas_package.timestamp_;
    }
     if(meas_package.sensor_type_== MeasurementPackage::RADAR && use_radar_ && is_initialized_){
-        Prediction(meas_package.timestamp_ - time_us_);
+        Prediction(delta_t);
         UpdateRadar(meas_package);
         time_us_ = meas_package.timestamp_;
     }
@@ -161,13 +160,7 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
 
 void UKF::Prediction(double delta_t) {
 
-    delta_t /= 1000000;
-    //std::cout << delta_t << std::endl;
-
     MatrixXd Xsig_aug = AugmentedSigmaPoints();
-    //std::cout << x_ << std::endl;
-    //std::cout << weights_.sum() << std::endl;
-
 
 
     for (int i = 0; i< 2*n_aug_+1; ++i) {
@@ -312,6 +305,9 @@ void UKF::UpdateLidar(MeasurementPackage meas_package) {
 
     x_ = x_ + K * z_diff;
     P_ = P_ - K*S*K.transpose();
+
+    auto e = z_diff.transpose() * S.inverse() * z_diff;
+    std::cout << "LIDAR:" << e << std::endl;
 }
 
 void UKF::UpdateRadar(MeasurementPackage meas_package) {
@@ -408,5 +404,8 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
 
     x_ = x_ + K * z_diff;
     P_ = P_ - K*S*K.transpose();
+
+    auto e = z_diff.transpose() * S.inverse() * z_diff;
+    //std::cout << "RADAR:" << e << std::endl;
 
 }

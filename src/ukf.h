@@ -99,6 +99,7 @@ class UKF {
   double lambda_;
 
   Eigen::MatrixXd Xsig_pred;
+
 };
 
 #endif  // UKF_H
